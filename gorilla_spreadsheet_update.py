@@ -2,7 +2,7 @@
 #step 2: starting on line 37, place a # character just before any site you do not want to update
 #step 3: copy the line below into the terminal, not including the # at the beginning of the line, then press enter.
 
-# python "D:\Desktop\iDiv_Chimp&See\Website\Updated website\Autopopulate Dec 2019\chimp_spreadsheet_update.py"
+# python "D:\Desktop\iDiv_Chimp&See\Website\Updated website\Autopopulate Dec 2019\gorilla_spreadsheet_update.py"
 
 
 """
@@ -35,8 +35,8 @@ output_folder = r"D:\Desktop\iDiv_Chimp&See\Website\Updated website\Autopopulate
 
 #Site that you need to loop through.
 sites = {
-"New Dragonfly": 11110, #
-"Xenon Bloom": 11077,
+# "New Dragonfly": 11110, #
+# "Xenon Bloom": 11077,
 "Twin Oaks": 11768, 
 #"",
 #"",
@@ -45,7 +45,7 @@ sites = {
 }
 
 #Location of the chimp spreadsheet update script.
-chimp_spreadsheet_update_script_path = r"D:\Desktop\iDiv_Chimp&See\Website\Updated website\Autopopulate Dec 2019\chimp_spreadsheet_update_functions.py"
+gorilla_spreadsheet_update_script_path = r"D:\Desktop\iDiv_Chimp&See\Website\Updated website\Autopopulate Dec 2019\gorilla_spreadsheet_update_functions.py"
 
 #Use a for loop to loop through the items in the sites list.
 for key, values in sites.items():
@@ -56,7 +56,7 @@ for key, values in sites.items():
 
     #Use subprocess to sent the python command with the relevant commands.
     p = subprocess.Popen(["python",
-                          str(chimp_spreadsheet_update_script_path),
+                          str(gorilla_spreadsheet_update_script_path),
                           str(data_directory),
                           str(site),
                           str(workflow),

@@ -15,7 +15,7 @@ For questions relevant to operation within a python environment, please contact 
 
 """
 
-print("Running leopard spreadsheet update...\n")
+print("Running chimp spreadsheet update...\n")
 __author__ = ["Nick Stephens", "Colleen Stephens"]
 
 for a in __author__:
@@ -116,18 +116,18 @@ directory = pathlib.Path(sys.argv[1]) #Takes the second argument from the comman
 os.chdir(directory)
 
 # The site name (i.e. sheet name) within the google spread sheet.
-#Site_name = "Xenon Bloom"
+#Site_name = "New Dragonfly"
 Site_name = sys.argv[2] #Takes the third argument from the command line.
 
 # The workflow ID that you want to use to subset the sheet by.
-#workflow_id = '11077'
+#workflow_id = '11110'
 workflow_id = int(sys.argv[3]) #Takes the fourth argument from the command line.
 
 #Directory where the files will be written to.
 output_directory = pathlib.Path(sys.argv[4]) #Takes the fifth argument from the command line.
 
 # This is the name of the sheet that you want to pull from google.
-Google_SpreadSheet = "Leopards"
+Google_SpreadSheet = "Chimp&See Chimp Video List 2019"
 
 # Define the subjects file.
 subjects_file = "chimp-and-see-subjects.csv"
@@ -186,7 +186,7 @@ master_googs.index = master_googs.index.astype(int)
 ###############################################################
 '''
 Identify which clips have chimps in them.
-This will be determined by the tag "leopard" or by one or more "LEOPARD" classifications.
+This will be determined by the tag "chimp" or by one or more "CHIMPANZEE" classifications.
 '''
 # start = timer()
 
@@ -196,16 +196,16 @@ print("\nSetting up the classifications...")
 class_sub = classification[(classification['workflow_id'] == int(workflow_id))]
 
 # This subsets the classifications further using a string match in the annotation columns.
-class_sub = class_sub[(class_sub['annotations'].str.contains("LEOPARD"))]
+class_sub = class_sub[(class_sub['annotations'].str.contains("CHIMPANZEE"))]
 
 # Takes the class_sub data frame and then asks if the unique values (.value_counts()) contain the subject ids.
-class_sub_mit_leopard = class_sub[class_sub['subject_ids'].isin(class_sub['subject_ids'].value_counts()[class_sub['subject_ids'].value_counts() > 1].index)]
+class_sub_mit_chimp = class_sub[class_sub['subject_ids'].isin(class_sub['subject_ids'].value_counts()[class_sub['subject_ids'].value_counts() > 1].index)]
 
 # Make the 'Subject ID' column an integer so it is consistent across the dataframes we are working with.
-class_sub_mit_leopard['Subject ID'] = class_sub_mit_leopard['subject_ids'].astype(int)
+class_sub_mit_chimp['Subject ID'] = class_sub_mit_chimp['subject_ids'].astype(int)
 
 # Collapse by the Subject ID using the groupby function in pandas. We are joining the shared columns by a space ' '.
-class_sub_mit_leopard = class_sub_mit_leopard.groupby('Subject ID').agg(' '.join)
+class_sub_mit_chimp = class_sub_mit_chimp.groupby('Subject ID').agg(' '.join)
 
 # end = timer()
 # elapsed = abs(start - end)
@@ -225,13 +225,13 @@ print("\nSetting up the tags...")
 #subset the tags data frame so that there are no NA values in taggable_id
 tags = tags.dropna(subset=['taggable_id'])
 
-# Subset the tags data frame by the exact match of 'leopard' in the name column without spaces.
-tag_sub = tags[(tags['name'] == str('leopard'))]
+# Subset the tags data frame by the exact match of 'chimp' in the name column without spaces.
+tag_sub = tags[(tags['name'] == str('chimp'))]
 
 # Find the individuals that should not appear going forward in the tags data frame using a partial string match.
 omit_df = tags[(tags['name'].str.contains('omit'))]
 
-# Set up the index so it is the same datatype (int) as the master_googs dataframe.
+# Set up the index so it is the same datatype (str) as the master_googs dataframe.
 omit_df['Subject ID'] = omit_df['taggable_id'].astype(int)
 
 # Set the index to the Subject ID because it is the common feature amongst the data frames.
@@ -239,17 +239,17 @@ omit_df = omit_df.set_index('Subject ID')
 
 # Subset the tags data frame so it only contains chimps.
 # Get the unique ids by dropping the duplicates from the subsetted dataframe. Here we are only keeping the first entry.
-tag_sub_mit_leopard = tag_sub.drop_duplicates(subset=['taggable_id'], keep='first')
+tag_sub_mit_chimp = tag_sub.drop_duplicates(subset=['taggable_id'], keep='first')
 
 # Drop those rows that have Na or NaN in the taggable id column.
-tag_sub_mit_leopard.dropna(subset=['taggable_id'], inplace=True)
+tag_sub_mit_chimp.dropna(subset=['taggable_id'], inplace=True)
 
 # Create the 'Subject ID' column from the taggable id column, since they are the same thing. Make certain they're all strings
-tag_sub_mit_leopard['Subject ID'] = tag_sub_mit_leopard['taggable_id'].astype(int)
+tag_sub_mit_chimp['Subject ID'] = tag_sub_mit_chimp['taggable_id'].astype(int)
 
 # Remove the rows from the dataframe based on the omit dataframe.
 # The tilda ~ means reverse, thus flipping the logic of the .isin function.
-tag_sub_mit_leopard = tag_sub_mit_leopard[~tag_sub_mit_leopard['Subject ID'].isin(omit_df.index)]
+tag_sub_mit_chimp = tag_sub_mit_chimp[~tag_sub_mit_chimp['Subject ID'].isin(omit_df.index)]
 
 #Collapse the name into the the Subject ID and join common columns by a space ' '
 tags_collapsed = tags.groupby('taggable_id').agg(' '.join)
@@ -258,7 +258,7 @@ tags_collapsed = tags.groupby('taggable_id').agg(' '.join)
 tags_collapsed['Subject ID'] = tags_collapsed.index.astype(int)
 
 # Pull out just those instances that match with those previously observed in subset_mit_chimp
-tags_collapsed = tags_collapsed[tags_collapsed['Subject ID'].isin(tag_sub_mit_leopard['Subject ID'])]
+tags_collapsed = tags_collapsed[tags_collapsed['Subject ID'].isin(tag_sub_mit_chimp['Subject ID'])]
 
 # Grab only the columns we need.
 tags_collapsed = tags_collapsed[['Subject ID', 'name']]
@@ -297,14 +297,15 @@ subjects['workflow_id'] = subjects['workflow_id'].astype(int)
 # Create a subset of the dataframe based on the workflow ID given using a boolean (==) match.
 subjects = subjects[(subjects['workflow_id'] == int(workflow_id))]
 subjects['Subject ID'] = subjects['subject_id'].astype(int)
+
 # Make sure the tags dataframe is in line with the subjects we want.
 tags_collapsed = tags_collapsed[tags_collapsed['Subject ID'].isin(subjects['Subject ID'])]
 
 # Make sure the class dataframe is in line subjects we want.
-class_sub_mit_leopard = class_sub_mit_leopard[class_sub_mit_leopard.index.isin(subjects['Subject ID'])]
+class_sub_mit_chimp = class_sub_mit_chimp[class_sub_mit_chimp.index.isin(subjects['Subject ID'])]
 
 # Remove those that we hopefully already omitted earlier to be sure.
-class_sub_mit_leopard = class_sub_mit_leopard[~class_sub_mit_leopard.index.isin(omit_df.index)]
+class_sub_mit_chimp = class_sub_mit_chimp[~class_sub_mit_chimp.index.isin(omit_df.index)]
 
 # end = timer()
 # elapsed = abs(start - end)
@@ -321,43 +322,43 @@ Create the new chimp dataframe, which will be appeneded to the master google spr
 print("\nCreating new entries...")
 
 # To determine the new chimp videos we take the Subject ID column from the tags and subset by the subjects index.
-new_leopard_df = tags_collapsed[~tags_collapsed['Subject ID'].isin(subjects.index)]
+new_chimp_df = tags_collapsed[~tags_collapsed['Subject ID'].isin(subjects.index)]
 
 # Assign the column name so we are certain they match up.
-new_leopard_df = new_leopard_df["Subject ID"]
-new_leopard_df.columns = ["Subject ID"]
+new_chimp_df = new_chimp_df["Subject ID"]
+new_chimp_df.columns = ["Subject ID"]
 
 # Then we reset the index to a numerical one.
-new_leopard_df.reset_index(drop=True, inplace=True)
+new_chimp_df.reset_index(drop=True, inplace=True)
 
 # Create a second new chimp dataframe from the classifications.
-new_leopard_df2 = class_sub_mit_leopard[~class_sub_mit_leopard.index.isin(subjects.index)]
+new_chimp_df2 = class_sub_mit_chimp[~class_sub_mit_chimp.index.isin(subjects.index)]
 
 # Set up the Subject ID column, which is the index here.
-new_leopard_df2["Subject ID"] = new_leopard_df2.index
+new_chimp_df2["Subject ID"] = new_chimp_df2.index
 
 # Assign the column names so we are certain they match.
-new_leopard_df2 = new_leopard_df2["Subject ID"]
-new_leopard_df2.columns = ["Subject ID"]
+new_chimp_df2 = new_chimp_df2["Subject ID"]
+new_chimp_df2.columns = ["Subject ID"]
 
 # Reset the index so it is numerical.
-new_leopard_df2.reset_index(drop=True, inplace=True)
+new_chimp_df2.reset_index(drop=True, inplace=True)
 
 # Merge the accepted Subject IDs to populate the chimp dataframe, which we append to master_googs later.
-new_leopard_df = pd.merge(new_leopard_df, new_leopard_df2, on='Subject ID', how="outer")
+new_chimp_df = pd.merge(new_chimp_df, new_chimp_df2, on='Subject ID', how="outer")
 
 # Get the columns from master_googs and then use a loop to add it iteratively.
 # This will make sure that all the columns present before are present after.
 
 columns = list(master_googs.columns)
 for i in columns:
-    new_leopard_df[str(i)] = "" # Populates the row cells with a blank string.
+    new_chimp_df[str(i)] = "" # Populates the row cells with a blank string.
 
 # Define the base html link that will then be tied to the Subject ID
 zoon_url = "https://www.zooniverse.org/projects/sassydumbledore/chimp-and-see/talk/subjects/"
 
 # Create the Link column with string mapping.
-new_leopard_df['Link'] = str(zoon_url) + new_leopard_df['Subject ID'].map(str)
+new_chimp_df['Link'] = str(zoon_url) + new_chimp_df['Subject ID'].map(str)
 
 # end = timer()
 # elapsed = abs(start - end)
@@ -375,8 +376,8 @@ Obtain the relevant metadata from the subjects and videos files.
 # start = timer()
 print("\nGrabbing information from the subjects file's metadata...")
 
-# Just get the relevant new subjects by referencing the new_leopard_df.
-subjects_build = subjects[subjects['Subject ID'].isin(new_leopard_df['Subject ID'])]
+# Just get the relevant new subjects by referencing the new_chimp_df.
+subjects_build = subjects[subjects['Subject ID'].isin(new_chimp_df['Subject ID'])]
 
 # First we reformat the metadata so it becomes somethings that pandas can parse
 subjects_build["metadata"] = subjects_build["metadata"].apply(lambda x: dict(eval(x)))
@@ -414,7 +415,7 @@ video_name_df = metadata_df["#clip.name"].str.split('_', expand=True)
 # Make a copy so any operations done won't impact the clip start time later.
 clip_start_df = video_name_df.copy()
 
-# To get the clip start time we take the last two columns and joins them with an underscore
+# To get the clip start time we take the last two columns and join them with an underscore
 # Because there may be different numbers of columns for each row or across sites, we do this row by row.
 clip_start_df["Clip start time"] = ['_'.join(row.astype(str)) for row in clip_start_df[clip_start_df.columns[-2:]].values]
 
@@ -445,6 +446,7 @@ video_name_df["Clip start time"] = clip_start_df["Clip start time"]
 
 # Isolate just get relevant columns.
 video_name_df = video_name_df[["Subject ID", "folder_name", "video_name", "Clip start time"]]
+
 # end = timer()
 # elapsed = abs(start - end)
 # print("Operation took: {:10.4f} seconds.\n".format((float(elapsed))))
@@ -488,14 +490,13 @@ video_time["file datetime"] = video_time["file datetime"] - video_time["time.off
 video_time["file datetime"] = video_time["file datetime"].astype(str)
 print(video_time)
 
-
+video_time.to_csv("video_time_after_offset.csv")
 # New we need to get the 'Card change date' column from the 'folder_name' column.
 # Isolate the last section after the underscore with a reverse split with 1 instance.
 video_time['Card change date'] = video_time["folder_name"].str.rsplit('_', n=1, expand=True)[1]
 
 #Match up the video_time and metadata
 clip_info = pd.merge(video_name_df, video_time, on=['folder_name', 'video_name'], how="left")
-print(clip_info.sort_values(by="file datetime")[["file datetime", "folder_name"]])
 
 # end = timer()
 # elapsed = abs(start - end)
@@ -514,31 +515,34 @@ print("\nUpdating master Googs with new information...")
 
 #Explicity set Subject ID as an int to ensure it updates correctly 
 clip_info["Subject ID"] = clip_info["Subject ID"].astype(int)
-new_leopard_df["Subject ID"] = new_leopard_df["Subject ID"].astype(int)
+new_chimp_df["Subject ID"] = new_chimp_df["Subject ID"].astype(int)
 
 #Set the subject ID as the index in both dataframes because we don't trust the numeric index it set up. 
 clip_info.set_index("Subject ID", inplace=True)
-new_leopard_df.set_index("Subject ID", inplace=True)
+new_chimp_df.set_index("Subject ID", inplace=True)
 
-# Then we update the new_leopard_df based on the information that we collected above.
-new_leopard_df.update(clip_info['Clip start time'])
-new_leopard_df.update(clip_info['Card change date'])
-new_leopard_df.update(clip_info['file datetime'])
+# Then we update the new_chimp_df based on the information that we collected above.
+new_chimp_df.update(clip_info['Clip start time'])
+new_chimp_df.update(clip_info['Card change date'])
+new_chimp_df.update(clip_info['file datetime'])
+
+print(new_chimp_df['file datetime'])
 
 # Get the stuff from the master googs
 # Make certain the omits have been omitted
-new_leopard_df = new_leopard_df[~new_leopard_df.index.isin(omit_df.index)]
+new_chimp_df = new_chimp_df[~new_chimp_df.index.isin(omit_df.index)]
 
 # Just get the new chimps that we need to append to the end
-new_leopard_df = new_leopard_df[~new_leopard_df.index.isin(master_googs.index)]
+new_chimp_df = new_chimp_df[~new_chimp_df.index.isin(master_googs.index)]
 
 #Combine the two dataframes.
-combined_dataframe = master_googs.append(new_leopard_df)
+combined_dataframe = master_googs.append(new_chimp_df)
 
 #This is just so it updates the card change date each time, because there was a blank
 combined_dataframe.update(clip_info['Card change date'])
-combined_dataframe.update(clip_info['file datetime'])
 combined_dataframe.update(clip_info['Clip start time'])
+combined_dataframe.update(clip_info['file datetime'])
+
 
 if combined_dataframe.index.name == None:
     combined_dataframe.index.name = "Subject ID"
@@ -579,7 +583,7 @@ print("\nWriting out {} updated spreadsheet to {}...".format(str(Site_name),
 
 #Join the output directory with the name using pathlib, which ensures the slashes are appropriate for the OS.
 #replace the space in the site name with underscore
-output_name = pathlib.Path(output_directory).joinpath(str(Site_name).replace(" ","_") + "_leopard_spreadsheet_updated.csv")
+output_name = pathlib.Path(output_directory).joinpath(str(Site_name).replace(" ","_") + "_chimp_spreadsheet_updated.csv")
 
 #save as .csv
 combined_dataframe.to_csv(str(output_name), sep=",", header=None)
